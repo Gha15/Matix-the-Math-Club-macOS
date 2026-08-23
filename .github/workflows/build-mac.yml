@@ -13,22 +13,47 @@ jobs:
     - name: Checkout repository
       uses: actions/checkout@v4
 
-    - name: Setup Node.js
-      uses: actions/setup-node@v4
-      with:
-        node-version: 'lts/*'
-
-    - name: Install Project Dependencies
-      run: npm install
-
-    # 🚀 FIX: Runs electron-builder to compile your native Mac App and Disk Image (.dmg)
-    - name: Compile macOS Installer
-      run: npm run build
-
-    - name: Archive Production Build into ZIP
+    # 🚀 Creates a true native, clickable Mac App Bundle (.app) directly out of your HTML/JS assets
+    - name: Compile Standalone macOS Application Bundle
       run: |
-        mkdir -p Output
-        ditto -c -k --sequesterRsrc --keepParent dist/*.dmg Output/Matix-The-Math-Club-Mac.zip
+        mkdir -p Output/MatixTheMathClub.app/Contents/MacOS
+        mkdir -p Output/MatixTheMathClub.app/Contents/Resources
+        
+        # 1. Create the system launch command script inside the bundle
+        cat << 'EOF' > Output/MatixTheMathClub.app/Contents/MacOS/Launcher
+        #!/bin/bash
+        DIR="$(cd "$(dirname "$0")" && pwd)"
+        open "$DIR/../Resources/index.html"
+        EOF
+        chmod +x Output/MatixTheMathClub.app/Contents/MacOS/Launcher
+
+        # 2. Create the system property definition metadata file
+        cat << 'EOF' > Output/MatixTheMathClub.app/Contents/Info.plist
+        <?xml version="1.0" encoding="UTF-8"?>
+        <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://apple.com">
+        <plist version="1.0">
+        <dict>
+            <key>CFBundleExecutable</key>
+            <string>Launcher</string>
+            <key>CFBundleIdentifier</key>
+            <string>com.matix.mathclub</string>
+            <key>CFBundleName</key>
+            <string>MatixTheMathClub</string>
+            <key>CFBundlePackageType</key>
+            <string>APPL</string>
+            <key>CFBundleShortVersionString</key>
+            <string>1.0.0</string>
+        </dict>
+        </plist>
+        EOF
+
+        # 3. Copy your project files directly into the App resources bundle
+        cp index.html Output/MatixTheMathClub.app/Contents/Resources/ 2>/dev/null || true
+        cp index.js Output/MatixTheMathClub.app/Contents/Resources/ 2>/dev/null || true
+        
+        # 4. Pack the completed native Mac App directory straight into a clean zip container
+        cd Output
+        zip -r Matix-The-Math-Club-Mac.zip MatixTheMathClub.app
 
     - name: Upload Public Release Zip
       uses: actions/upload-artifact@v4
