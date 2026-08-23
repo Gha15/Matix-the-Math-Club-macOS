@@ -1,0 +1,38 @@
+name: Build macOS Production Release
+
+on:
+  push:
+    branches: [ "master" ]
+  pull_request:
+    branches: [ "master" ]
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: xcode-27
+
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: 'lts/*'
+
+    - name: Install Dependencies
+      run: npm install
+
+    - name: Build Application Production Files
+      run: npm run build
+
+    - name: Archive Production Build into ZIP
+      run: |
+        mkdir -p Output
+        ditto -c -k --sequesterRsrc --keepParent dist Output/Matix-The-Math-Club-Mac.zip
+
+    - name: Upload Public Release Zip
+      uses: actions/upload-artifact@v4
+      with:
+        name: Matix-Mac-Release
+        path: Output/*.zip

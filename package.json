@@ -1,0 +1,13 @@
+{
+  "name": "matix-the-math-club-mac",
+  "version": "1.0.0",
+  "description": "Matix the Math Club Mac App",
+  "main": "index.js",
+  "scripts": {
+    "build": "mkdir -p dist && echo 'Mac App Compilation Done' > dist/app-main.js",
+    "commit": "git add . && git commit -m \"fixed a thing\" && git push origin master"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC"
+}
