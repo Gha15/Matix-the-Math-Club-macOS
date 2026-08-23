@@ -21,20 +21,13 @@ jobs:
     - name: Install Project Dependencies
       run: npm install
 
-    # Compiles your application layout directly into a native Apple Installer package (.dmg)
+    # 🚀 FIX: Compiles your native Apple Disk Image installer (.dmg)
     - name: Compile macOS DMG Installer
       run: npx electron-builder build --mac dmg --publish never
 
-    # 📁 Pulls only the generated .dmg installer and bundles it into a secure, clean ZIP container
-    - name: Archive DMG Installer into ZIP
-      run: |
-        mkdir -p Output
-        mv dist/*.dmg Output/
-        cd Output
-        zip -r Matix-The-Math-Club-Mac.zip *.dmg
-
-    - name: Upload Clean Mac Release Zip
+    # 📁 FIX: Uploads the raw .dmg file directly without manual zipping blocks
+    - name: Upload Clean Mac Installer Binary
       uses: actions/upload-artifact@v4
       with:
-        name: Matix-Mac-Release
-        path: Output/*.zip
+        name: Matix-Mac-Installer
+        path: dist/*.dmg
