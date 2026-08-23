@@ -3,13 +3,11 @@ name: Build macOS Production Release
 on:
   push:
     branches: [ "master" ]
-  pull_request:
-    branches: [ "master" ]
   workflow_dispatch:
 
 jobs:
   build:
-    runs-on: xcode-27
+    runs-on: macos-latest
 
     steps:
     - name: Checkout repository
@@ -20,16 +18,17 @@ jobs:
       with:
         node-version: 'lts/*'
 
-    - name: Install Dependencies
+    - name: Install Project Dependencies
       run: npm install
 
-    - name: Build Application Production Files
+    # 🚀 FIX: Runs electron-builder to compile your native Mac App and Disk Image (.dmg)
+    - name: Compile macOS Installer
       run: npm run build
 
     - name: Archive Production Build into ZIP
       run: |
         mkdir -p Output
-        ditto -c -k --sequesterRsrc --keepParent dist Output/Matix-The-Math-Club-Mac.zip
+        ditto -c -k --sequesterRsrc --keepParent dist/*.dmg Output/Matix-The-Math-Club-Mac.zip
 
     - name: Upload Public Release Zip
       uses: actions/upload-artifact@v4
