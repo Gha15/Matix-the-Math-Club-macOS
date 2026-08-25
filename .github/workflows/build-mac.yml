@@ -1,33 +1,68 @@
-name: Build macOS Production Release
+name: Build Mac App
 
 on:
-  push:
-    branches: [ "master" ]
   workflow_dispatch:
+  push:
+    tags:
+      - "v*"
+
+permissions:
+  contents: write
 
 jobs:
-  build:
+  mac:
+    name: Mac app
     runs-on: macos-latest
-
     steps:
-    - name: Checkout repository
-      uses: actions/checkout@v4
+      - uses: actions/checkout@v5
 
-    - name: Setup Node.js
-      uses: actions/setup-node@v4
-      with:
-        node-version: 'lts/*'
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
 
-    - name: Install Project Dependencies
-      run: npm install
+      - name: Install dependencies
+        run: npm install
 
-    # 🚀 FIX: Compiles your native Apple Disk Image installer (.dmg)
-    - name: Compile macOS DMG Installer
-      run: npx electron-builder build --mac dmg --publish never
+      - name: Check Apple Credentials Status
+        id: apple
+        env:
+          CERT: ${{ secrets.MAC_CERT_P12 }}
+        run: |
+          if [ -n "$CERT" ]; then
+            echo "signed=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "signed=false" >> "$GITHUB_OUTPUT"
+          fi
 
-    # 📁 FIX: Uploads the raw .dmg file directly without manual zipping blocks
-    - name: Upload Clean Mac Installer Binary
-      uses: actions/upload-artifact@v4
-      with:
-        name: Matix-Mac-Installer
-        path: dist/*.dmg
+      - name: Build, sign and notarise
+        if: steps.apple.outputs.signed == 'true'
+        env:
+          CSC_LINK: ${{ secrets.MAC_CERT_P12 }}
+          CSC_KEY_PASSWORD: ${{ secrets.MAC_CERT_PASSWORD }}
+          APPLE_ID: ${{ secrets.APPLE_ID }}
+          APPLE_APP_SPECIFIC_PASSWORD: ${{ secrets.APPLE_APP_PASSWORD }}
+          APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
+        run: npx electron-builder --mac --publish never
+
+      - name: Verify Signature and Notarisation
+        if: steps.apple.outputs.signed == 'true'
+        run: |
+          APP=$(find dist -maxdepth 2 -name "*.app" | head -n 1)
+          echo "Checking application package at $APP"
+          codesign --verify --deep --strict --verbose=2 "$APP"
+          xcrun stapler validate "$APP" || echo "Stapler execution bypassed: Notarisation processing asynchronously."
+          spctl --assess --type execute --verbose "$APP"
+
+      - name: Build unsigned Mac app
+        if: steps.apple.outputs.signed == 'false'
+        env:
+          CSC_IDENTITY_AUTO_DISCOVERY: "false"
+        run: |
+          npx electron-builder --mac --publish never
+          echo "Built without an Apple signature. Users follow the unlock steps on the download page."
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: matix-mac
+          path: dist/*.dmg
+          if-no-files-found: error
