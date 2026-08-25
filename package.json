@@ -11,13 +11,17 @@
     "appId": "com.matix.mathclub",
     "productName": "MatixTheMathClub",
     "compression": "maximum",
+    "asar": true,
+    "asarUnpack": [],
     "directories": {
       "output": "dist"
     },
     "files": [
       "index.html",
       "index.js",
-      "package.json"
+      "package.json",
+      "!node_modules/*",
+      "node_modules/**/*"
     ],
     "win": {
       "target": "portable"

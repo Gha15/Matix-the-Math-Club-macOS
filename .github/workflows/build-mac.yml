@@ -3,6 +3,8 @@ name: Build Mac App
 on:
   workflow_dispatch:
   push:
+    branches:
+      - "master"
     tags:
       - "v*"
 
@@ -34,17 +36,16 @@ jobs:
             echo "signed=false" >> "$GITHUB_OUTPUT"
           fi
 
-      - name: Build, sign and notarise for Intel & Apple Silicon
+      - name: Build, sign and notarise for Apple Silicon (Compressed)
         if: steps.apple.outputs.signed == 'true'
         env:
-          # Required environmental configs for modern Electron-Builder notarization
           CSC_LINK: ${{ secrets.MAC_CERT_P12 }}
           CSC_KEY_PASSWORD: ${{ secrets.MAC_CERT_PASSWORD }}
           APPLE_ID: ${{ secrets.APPLE_ID }}
           APPLE_APP_SPECIFIC_PASSWORD: ${{ secrets.APPLE_APP_PASSWORD }}
           APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
-        # --universal compiles for both Intel and Apple Silicon chips up to macOS 27 natively
-        run: npx electron-builder --mac dmg --universal --publish never
+        # Replaced --universal with --arm64 to slice the file size in half
+        run: npx electron-builder --mac dmg --arm64 --publish never
 
       - name: Verify Signature and Notarisation
         if: steps.apple.outputs.signed == 'true'
@@ -60,7 +61,7 @@ jobs:
         env:
           CSC_IDENTITY_AUTO_DISCOVERY: "false"
         run: |
-          npx electron-builder --mac dmg --universal --publish never
+          npx electron-builder --mac dmg --arm64 --publish never
           echo "Built without an Apple signature. Users follow manual bypass steps."
 
       - uses: actions/upload-artifact@v4
