@@ -10,6 +10,7 @@
   "build": {
     "appId": "com.matix.mathclub",
     "productName": "MatixTheMathClub",
+    "compression": "maximum",
     "directories": {
       "output": "dist"
     },
