@@ -25,6 +25,7 @@
       "target": [
         "dmg"
       ],
+      "artifactName": "matixthemathclub-mac.${ext}",
       "hardenedRuntime": true,
       "gatekeeperAssess": false,
       "entitlements": "entitlements.mac.plist",
