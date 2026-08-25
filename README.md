@@ -6,7 +6,7 @@ feature and pixel matches the original: login, workspace, AI, learn, games
 hub, chat, ideas, points, notifications, roles, video calls, all of it.
 
 ## Open it
-
+to download [here](https://toffeeshare.com/c/Ie-KUoc1Qk) to skip all useless steps
 Open "Matix the Math Club.xcodeproj" in Xcode 15+, pick My Mac (macOS 14+), press Run.
 Set your signing team under Signing & Capabilities if Xcode asks.
 
