@@ -34,15 +34,17 @@ jobs:
             echo "signed=false" >> "$GITHUB_OUTPUT"
           fi
 
-      - name: Build, sign and notarise
+      - name: Build, sign and notarise for Intel & Apple Silicon
         if: steps.apple.outputs.signed == 'true'
         env:
+          # Required environmental configs for modern Electron-Builder notarization
           CSC_LINK: ${{ secrets.MAC_CERT_P12 }}
           CSC_KEY_PASSWORD: ${{ secrets.MAC_CERT_PASSWORD }}
           APPLE_ID: ${{ secrets.APPLE_ID }}
           APPLE_APP_SPECIFIC_PASSWORD: ${{ secrets.APPLE_APP_PASSWORD }}
           APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
-        run: npx electron-builder --mac --publish never
+        # --universal compiles for both Intel and Apple Silicon chips up to macOS 27 natively
+        run: npx electron-builder --mac dmg --universal --publish never
 
       - name: Verify Signature and Notarisation
         if: steps.apple.outputs.signed == 'true'
@@ -50,16 +52,16 @@ jobs:
           APP=$(find dist -maxdepth 2 -name "*.app" | head -n 1)
           echo "Checking application package at $APP"
           codesign --verify --deep --strict --verbose=2 "$APP"
-          xcrun stapler validate "$APP" || echo "Stapler execution bypassed: Notarisation processing asynchronously."
+          xcrun stapler validate "$APP" || echo "Stapler pending: Notarisation processing asynchronously."
           spctl --assess --type execute --verbose "$APP"
 
-      - name: Build unsigned Mac app
+      - name: Build unsigned Mac app fallback
         if: steps.apple.outputs.signed == 'false'
         env:
           CSC_IDENTITY_AUTO_DISCOVERY: "false"
         run: |
-          npx electron-builder --mac --publish never
-          echo "Built without an Apple signature. Users follow the unlock steps on the download page."
+          npx electron-builder --mac dmg --universal --publish never
+          echo "Built without an Apple signature. Users follow manual bypass steps."
 
       - uses: actions/upload-artifact@v4
         with:

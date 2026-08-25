@@ -22,7 +22,19 @@
       "target": "portable"
     },
     "mac": {
-      "target": "dmg"
+      "target": [
+        "dmg"
+      ],
+      "hardenedRuntime": true,
+      "gatekeeperAssess": false,
+      "entitlements": "entitlements.mac.plist",
+      "entitlementsInherit": "entitlements.mac.plist",
+      "notarize": {
+        "teamId": "APPLE_TEAM_ID"
+      }
+    },
+    "dmg": {
+      "sign": false
     }
   },
   "devDependencies": {
