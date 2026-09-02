@@ -5,6 +5,8 @@
   "main": "index.js",
   "author": "Matix Developer",
   "scripts": {
+    "sync-app": "node sync-app.js",
+    "build:mac": "npm run sync-app && npx electron-builder --mac dmg --arm64 --publish never",
     "commit": "node git-commit-helper.js"
   },
   "build": {
@@ -19,6 +21,7 @@
     "files": [
       "index.html",
       "index.js",
+      "temp/app.html",
       "package.json",
       "!node_modules/*",
       "node_modules/**/*"

@@ -28,7 +28,8 @@ if (!fs.existsSync(src)) {
 var candidates = [
   'MatixTheMathClub/app.html',     // Windows (WebView2)
   'Matix the Math Club/app.html',  // iOS + macOS (bundle resource)
-  'app/src/main/assets/app.html'   // Android (Gradle normally handles this)
+  'app/src/main/assets/app.html',  // Android (Gradle normally handles this)
+  'temp/app.html'                  // Electron/macOS build payload
 ];
 
 var copied = 0;
@@ -36,7 +37,13 @@ var copied = 0;
 candidates.forEach(function (rel) {
   var dest = path.join(root, rel);
   var dir = path.dirname(dest);
-  if (!fs.existsSync(dir)) return;
+  if (!fs.existsSync(dir)) {
+    if (rel === 'temp/app.html') {
+      fs.mkdirSync(dir, { recursive: true });
+    } else {
+      return;
+    }
+  }
   if (path.resolve(dest) === path.resolve(src)) return;
   fs.copyFileSync(src, dest);
   console.log('  synced -> ' + rel);
